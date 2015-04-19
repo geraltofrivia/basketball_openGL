@@ -19,9 +19,20 @@ angle_x = 0
 angle_y = 0
 angle_z = 0
 texture_num = 0
+shoulder = 0
+elbow = 0
+t = 0.0
+gt = 0.098
+interval = 200
+stop = 1
+x = 0
+y = 0
+z = 0
+year = 0
+day = 0
 
 def init():
-	global quadratice
+	global quadratic
 	
 	LoadTextures(3)
 
@@ -44,7 +55,30 @@ def init():
 	#glEnable(GL_LIGHT0)
 
 def timer(val):
-	return True
+    global t,hit,interval, x, y, z ,x_dir ,y_dir ,z_dir, vyi, vxi, stop, gt
+    if hit==1:
+        x_dir = -vxi
+    if y<-0.5 and stop == 1:
+        x_dir=(x_dir/2)
+        z_dir=(z_dir/2)
+        y_dir = -(y_dir/2)
+        if y_dir < 0.098:
+            x_dir = 0
+            y_dir = 0
+            z_dir = 0
+            gt = 0
+        stop = 0
+        print(x_dir,y_dir,z_dir)
+    if y > -0.5:
+        stop = 1
+    x = x + (x_dir*(0.01))
+    y = y + (y_dir*(0.01))
+    z = z + (z_dir*(0.01))
+    if x <= -1.9 and (z<0.5 and z>-0.5) and (y<1.5 and y>0.5):
+        hit = hit + 1
+    y_dir = y_dir - gt
+    glutPostRedisplay()
+    glutTimerFunc(interval, timer, 0)
 
 def CreateTexture(imagename, number):
     global textures
@@ -100,12 +134,30 @@ def LoadTextures(number):
 ##      CreateTexture("W.png", 1)
 ##      CreateTexture("myfire.jpg", 2)
     #CreateLinearFilteredTexture("mirrow2.bmp", 1)
-    #CreateMipMappedTexture("BasketballColor.jpg", 2)
+    CreateMipMappedTexture("BasketballColor.jpg", 2)
 
 def keyboard(key, a, b):
     global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, height
     if key == chr(27): 
        sys.exit(0)
+    elif key == 'g':
+    	angle_x += 1
+    	glutPostRedisplay()
+    elif key == 'b':
+    	angle_x -= 1
+    	glutPostRedisplay()	
+    elif key == 'h':
+    	angle_y += 1
+    	glutPostRedisplay()	
+    elif key == 'n':
+    	angle_y -= 1
+    	glutPostRedisplay()	
+    elif key == 'j':
+    	angle_z += 1
+    	glutPostRedisplay()	
+    elif key == 'm':
+    	angle_z -= 1
+    	glutPostRedisplay()		
     elif key == 'a':
        translate_z = translate_z - 0.5
        glutPostRedisplay()
@@ -158,8 +210,17 @@ def reshape(w,h):
     
     glMatrixMode(GL_MODELVIEW)
 
+def insertBall(rev, rot, tilt, dist, size):
+        global quadratic, x, y, z, height
+        
+        #glRotatef(rev, 0.0, 1.0, 0.0)
+        glTranslatef(x, height, z)
+        #glRotatef(rot, 0.0, 1.0, 0.0)
+        #glRotatef(tilt, 1.0, 0.0, 0.0)
+        gluSphere(quadratic, 0.5, 32, 32)
+
 def draw():
-	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num, height
+	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num, height, elbow, shoulder
 	
 	glClear(GL_COLOR_BUFFER_BIT)
 	glColor3f(1.0,1.0,1.0)	
@@ -172,10 +233,11 @@ def draw():
 
 	glPushMatrix()
 	#Mainspace. Let's just create a ground. That is all
-	glBindTexture(GL_TEXTURE_2D, int(textures[texture_num]))
+	
 
 	glPushMatrix()
 	#Place for the court
+	glBindTexture(GL_TEXTURE_2D, int(textures[texture_num]))
 	glColor3f(139,90,0)
 	glBegin(GL_QUADS)
 	glTexCoord2f(0.0,0.0)
@@ -279,12 +341,32 @@ def draw():
 	glPushMatrix()
 	#For the hand
 	glTranslate(0,-3,0)
-	glScale(0.4,0.4,1)
+	glScale(0.1,1,0.1)
 	glRotatef(270,1,0,0)
 	quadratic = gluNewQuadric()
 	gluCylinder(quadratic,0.5,0.5,height,32,32);
+	
+	glPushMatrix()
+	glColor(0,1,0)
+	#First segement of the hand
+	glTranslate(0,height,0)
+	#glScale(0.2,0.8,0.2)
+	glutSolidCube(0.2)
+	#Ending the first segement
+	glColor(0,0,0)
+	glTranslate(0,height,0)
+	glPushMatrix()
+	glBindTexture(GL_TEXTURE_2D, int(textures[2]))
+	glScale(1,0.1,1)
+	insertBall(year, day, 0.0, 0.0, 1.0)
+	glPopMatrix()
 	glPopMatrix()
 
+	#Ending the hand
+	
+	
+
+	glPopMatrix()
 	glPopMatrix()
 	glFlush()
 
@@ -309,5 +391,18 @@ x_dir = x_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
 y_dir = y_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
 z_dir = z_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
 #x y z are now normalized
+tt = (y_dir/9.8)*2
+ymax = (y_dir*t*0.5)-((9.8*t*t)/8)
+xmax = x_dir*t
+zmax = z_dir*t
+vyi = y_dir
+vxi = x_dir
+if xmax == 0:
+    xmax = 1
+if ymax == 0:
+    ymax = 1
+if zmax == 0:
+    zmax = 1
+hit = 0
 
 main()
