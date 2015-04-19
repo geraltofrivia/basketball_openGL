@@ -8,6 +8,7 @@ import math
 import sys
 
 quadratic = 0
+height = 0
 
 #Global vars
 interval = 200
@@ -102,35 +103,45 @@ def LoadTextures(number):
     #CreateMipMappedTexture("BasketballColor.jpg", 2)
 
 def keyboard(key, a, b):
-    global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z
+    global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, height
     if key == chr(27): 
-           sys.exit(0)
+       sys.exit(0)
     elif key == 'a':
-           translate_z = translate_z - 0.5
-           glutPostRedisplay()
+       translate_z = translate_z - 0.5
+       glutPostRedisplay()
     elif key == 's':
-           translate_x = translate_x + 0.5
-           glutPostRedisplay()
+       translate_x = translate_x + 0.5
+       glutPostRedisplay()
     elif key == 'z':
-           translate_z = translate_z + 0.5
-           glutPostRedisplay()
+       translate_z = translate_z + 0.5
+       glutPostRedisplay()
     elif key == 'x':
-           translate_x = translate_x - 0.5
-           glutPostRedisplay()
+       translate_x = translate_x - 0.5
+       glutPostRedisplay()
     elif key == 'd':
-           translate_y = translate_y - 0.5
-           glutPostRedisplay()
+       translate_y = translate_y - 0.5
+       glutPostRedisplay()
     elif key == 'c':
-           translate_y = translate_y + 0.5
-           glutPostRedisplay()
+       translate_y = translate_y + 0.5
+       glutPostRedisplay()
     elif key == 'f':
-            interval = interval - 40
-            if interval < 10 :
-                interval = 50
-            glutPostRedisplay()
+        interval = interval - 40
+        if interval < 10 :
+	        interval = 50
+        glutPostRedisplay()
     elif key == 'v':
-            interval = interval + 40
-            glutPostRedisplay()
+        interval = interval + 40
+        glutPostRedisplay()
+    elif key == '[':
+		try:
+			height += 0.2
+		except:
+			print "Error"
+		glutPostRedisplay()
+    elif key == ']':
+    	if height - 0.2 > 0.0:
+    		height -= 0.2
+    	glutPostRedisplay()
     elif key == 'q':
     		sys.exit()
     elif key == 'r':
@@ -139,29 +150,25 @@ def keyboard(key, a, b):
         z_dir = -1*z_dir
         print(x_dir,y_dir,z_dir)
 
-
-
 def reshape(w,h):
     glViewport(0,0,w,h)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    glFrustum(-1.0,1.0,-1.0,1.0,1.5,10.0)
+    glFrustum(-1.0,1.0,-1.0,1.0,1.5,100.0)
     
     glMatrixMode(GL_MODELVIEW)
 
-
 def draw():
-	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num
+	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num, height
 	
 	glClear(GL_COLOR_BUFFER_BIT)
 	glColor3f(1.0,1.0,1.0)	
 	glLoadIdentity()
-	gluLookAt(0.0,0.0,5.0, 0.0,0.0,0.0, 0.0,1.0,0.0)				#Functions to transform the camera	
+	gluLookAt(0.0,0.0,10.0, 0.0,0.0,0.0, 0.0,1.0,0.0)				#Functions to transform the camera	
 	glTranslate(translate_x, translate_y, translate_z)
 	glRotate(angle_x,1.0,0.0,0.0)
 	glRotate(angle_y,0.0,1.0,0.0)
 	glRotate(angle_z,0.0,0.0,1.0)
-
 
 	glPushMatrix()
 	#Mainspace. Let's just create a ground. That is all
@@ -186,10 +193,11 @@ def draw():
 	glPushMatrix()
 	#This place is the left post
 	glColor(0,0,0)	
+	
 	glPushMatrix()
 	#Just the pole
 	glTranslate(-4,-1.3,0)
-	glScale(0.1,4,0.1)
+	glScale(0.1,3.6,0.1)
 	glutSolidCube(1)
 	#Ending the pole
 	glPopMatrix()
@@ -205,7 +213,6 @@ def draw():
 	glTranslate(1.8,-0.44,0)
 	glScale(5,0.5,0.5)
 	glRotatef(90,1,0,0)
-	glRotate(180,0,1,0)
 	glColor3f(1,1,1)
 	glBegin(GL_LINE_LOOP)
 	i = 0
@@ -228,10 +235,11 @@ def draw():
 	glPushMatrix()
 	#This place is the right post
 	glColor(0,0,0)	
+	
 	glPushMatrix()
 	#Just the pole
 	glTranslate(4,-1.3,0)
-	glScale(0.1,4,0.1)
+	glScale(0.1,3.6,0.1)
 	glutSolidCube(1)
 	#Ending the pole
 	glPopMatrix()
@@ -240,19 +248,21 @@ def draw():
 	#Within the post pole, now to make the board
 	glTranslate(4,1,0)
 	glScale(0.1,1,1)
+	glRotatef(180,0,1,0)
 	glutWireCube(1)
 
 	glPushMatrix()
 	#The hoop
 	glTranslate(1.8,-0.44,0)
 	glScale(-5,0.5,0.5)
-	glRotatef(270,1,0,0)
+	glRotatef(90,1,0,0)
+	glRotate(180,0,1,0)
 	glColor3f(1,1,1)
 	glBegin(GL_LINE_LOOP)
 	i = 0
 	while i <= 300:
 	    angle = 2 * math.pi * i / 300
-	    a = -0.25*math.cos(angle)
+	    a = 0.25*math.cos(angle)
 	    b = 0.25*math.sin(angle)
 	    glVertex2f(a,b)
 	    i = i + 1
@@ -264,6 +274,15 @@ def draw():
 	glPopMatrix()
 
 	#End of the right post
+	glPopMatrix()
+
+	glPushMatrix()
+	#For the hand
+	glTranslate(0,-3,0)
+	glScale(0.4,0.4,1)
+	glRotatef(270,1,0,0)
+	quadratic = gluNewQuadric()
+	gluCylinder(quadratic,0.5,0.5,height,32,32);
 	glPopMatrix()
 
 	glPopMatrix()
