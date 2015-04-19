@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from Image import *
 import math
 import sys
+import numpy as np
 
 quadratic = 0
 height = 0
@@ -28,7 +29,7 @@ y = 0
 z = 0
 year = 0
 day = 0
-
+light = True
 def init():
 	global quadratic
 	
@@ -41,16 +42,18 @@ def init():
 	glEnable(GL_TEXTURE_2D)
 	glClearColor(135.0,206.0,255.0,1.0)
 	glClearDepth(1.0)                       
-	glDepthFunc(GL_LESS)                    
-	glEnable(GL_DEPTH_TEST)                 
+	#glDepthFunc(GL_LESS)                    
+                 
 	glShadeModel(GL_SMOOTH)
 	glShadeModel(GL_FLAT)
 	glOrtho(-100.0,100.0, -100.0,100.0, -10.0,10.0)
-	#glEnable(GL_LIGHTING)
+	glEnable(GL_LIGHTING)
+	glEnable(GL_LIGHT0)
+	glEnable(GL_DEPTH_TEST)
 	glLightfv(GL_LIGHT0, GL_AMBIENT, (0.15,0.15,0.15,0.1))
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, (1.0,1.0,1.0,1.0))
-	glLightfv(GL_LIGHT0, GL_POSITION, (0.0,0.0,0.0,0.0))
-	#glEnable(GL_LIGHT0)
+	
+	
 
 def timer(val):
     global t,hit,interval, x, y, z ,x_dir ,y_dir ,z_dir, vyi, vxi, stop, gt
@@ -74,7 +77,11 @@ def timer(val):
     z = z + (z_dir*(0.01))
     if x <= -1.9 and (z<0.5 and z>-0.5) and (y<1.5 and y>0.5):
         hit = hit + 1
-    y_dir = y_dir - gt
+        print "HIT!"
+    if y_dir >= -3:
+    	y_dir = y_dir - gt
+    else:
+    	y_dir = y_dir + gt
     glutPostRedisplay()
     glutTimerFunc(interval, timer, 0)
 
@@ -132,9 +139,12 @@ def LoadTextures(number):
     CreateMipMappedTexture("BasketballColor.jpg", 2)
 
 def keyboard(key, a, b):
-    global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, height
+    global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, height, light
     if key == chr(27): 
        sys.exit(0)
+    elif key == 'l':
+    	light = not light
+    	glutPostRedisplay()
     elif key == 'g':
     	angle_x += 1
     	glutPostRedisplay()
@@ -205,18 +215,28 @@ def reshape(w,h):
     
     glMatrixMode(GL_MODELVIEW)
 
-def insertBall(rev, rot, tilt, dist, size):
-    global quadratic, x, y, z, height
-    glTranslatef(x, y+height-3, z)
-    gluSphere(quadratic, 0.5, 32, 32)
+
+def get_normal_vector (v1, v2, v3):
+    v = np.cross(v2-v1, v3-v1)
+    n = np.sqrt(np.dot(v, v.conj()))
+    if n:
+        return v/n 
+    else:
+        print v1
+        print v2
+        print v3
+        print v/n
+        sys.exit(-1)
 
 def draw():
-	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num, height, elbow, shoulder,x,y,z, quadratic
+	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num, height, elbow, shoulder,x,y,z, quadratic, light
+	print "light" + str(light)
 	
 	glClear(GL_COLOR_BUFFER_BIT)
 	glColor3f(1.0,1.0,1.0)	
 	glLoadIdentity()
-	gluLookAt(0.0,0.0,10.0, 0.0,0.0,0.0, 0.0,1.0,0.0)				#Functions to transform the camera	
+	gluLookAt(0.0,0.0,10.0, 0.0,0.0,0.0, 0.0,1.0,0.0)
+	glLightfv(GL_LIGHT0, GL_POSITION, (0.0,-3.0,0.0,1.0))				#Functions to transform the camera	
 	glTranslate(translate_x, translate_y, translate_z)
 	glRotate(angle_x,1.0,0.0,0.0)
 	glRotate(angle_y,0.0,1.0,0.0)
@@ -228,9 +248,13 @@ def draw():
 
 	glPushMatrix()
 	#Place for the court
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [183/256.0, 65/256.0, 14/256.0, 1.0]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, [1, 1, 1, 1]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, [100.0]);
 	glBindTexture(GL_TEXTURE_2D, int(textures[texture_num]))
 	glColor3f(139,90,0)
 	glBegin(GL_QUADS)
+	#n = get_normal_vector(v0, v1, v3)
 	glTexCoord2f(0.0,0.0)
 	glVertex3f(-4,-3,-1)
 	glTexCoord2f(1.0,0.0)
@@ -346,9 +370,13 @@ def draw():
 	#insertBall(year, day, 0.0, 0.0, 1.0)
 	gluSphere(quadratic, 0.5, 32, 32)
 	glPopMatrix()		#End the ball
-
+	if light: 
+		print "true"
+		glEnable (GL_LIGHTING)
+	else: glDisable(GL_LIGHTING)
 
 	glFlush()
+	glutSwapBuffers()
 
 
 
@@ -367,9 +395,9 @@ def main():
 
 velocity = input("Enter the inital velocity")
 x_dir, y_dir, z_dir = input("Input x direction vector"), input("Input y direction vector"), input("Input z direction vector")
-x_dir = x_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
-y_dir = y_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
-z_dir = z_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
+x_dir = velocity*x_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
+y_dir = velocity*y_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
+z_dir = velocity*z_dir/math.sqrt((x_dir*x_dir) + (y_dir*y_dir) + (z_dir*z_dir))
 #x y z are now normalized
 tt = (y_dir/9.8)*2
 ymax = (y_dir*t*0.5)-((9.8*t*t)/8)
