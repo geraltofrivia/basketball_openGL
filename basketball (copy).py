@@ -1,5 +1,3 @@
-
-
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from OpenGL.GL import *
@@ -131,9 +129,6 @@ def LoadTextures(number):
 
     textures = glGenTextures(number)
     CreateTexture("Wall.jpg", 0)
-##      CreateTexture("W.png", 1)
-##      CreateTexture("myfire.jpg", 2)
-    #CreateLinearFilteredTexture("mirrow2.bmp", 1)
     CreateMipMappedTexture("BasketballColor.jpg", 2)
 
 def keyboard(key, a, b):
@@ -206,21 +201,17 @@ def reshape(w,h):
     glViewport(0,0,w,h)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    glFrustum(-1.0,1.0,-1.0,1.0,1.5,100.0)
+    gluPerspective(65.0,w/h,1.0,6000.0)
     
     glMatrixMode(GL_MODELVIEW)
 
 def insertBall(rev, rot, tilt, dist, size):
-        global quadratic, x, y, z, height
-        
-        #glRotatef(rev, 0.0, 1.0, 0.0)
-        glTranslatef(x, height, z)
-        #glRotatef(rot, 0.0, 1.0, 0.0)
-        #glRotatef(tilt, 1.0, 0.0, 0.0)
-        gluSphere(quadratic, 0.5, 32, 32)
+    global quadratic, x, y, z, height
+    glTranslatef(x, y+height-3, z)
+    gluSphere(quadratic, 0.5, 32, 32)
 
 def draw():
-	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num, height, elbow, shoulder
+	global translate_x, translate_y, translate_z, angle_x, angle_y, angle_z, texture_num, height, elbow, shoulder,x,y,z, quadratic
 	
 	glClear(GL_COLOR_BUFFER_BIT)
 	glColor3f(1.0,1.0,1.0)	
@@ -252,21 +243,22 @@ def draw():
 	#End of basketball court 
 	glPopMatrix()
 
+
 	glPushMatrix()
 	#This place is the left post
 	glColor(0,0,0)	
 	
 	glPushMatrix()
 	#Just the pole
-	glTranslate(-4,-1.3,0)
-	glScale(0.1,3.6,0.1)
+	glTranslate(-4,-1.54,0)
+	glScale(0.1,3,0.1)
 	glutSolidCube(1)
 	#Ending the pole
 	glPopMatrix()
 
 	glPushMatrix()
 	#Within the post pole, now to make the board
-	glTranslate(-4,1,0)
+	glTranslate(-4,0.4,0)
 	glScale(0.1,1,1)
 	glutWireCube(1)
 	
@@ -295,26 +287,32 @@ def draw():
 	glPopMatrix()
 	
 	glPushMatrix()
-	#This place is the right post
-	glColor(0,0,0)	
-	
-	glPushMatrix()
-	#Just the pole
-	glTranslate(4,-1.3,0)
-	glScale(0.1,3.6,0.1)
-	glutSolidCube(1)
-	#Ending the pole
+	#For the hand
+	glTranslate(0,-3,0)
+	glScale(0.1,1,0.1)
+	glRotatef(270,1,0,0)
+	quna = gluNewQuadric()
+	gluCylinder(quna,0.5,0.5,height,32,32);
+	#Ending the hand
 	glPopMatrix()
 
 	glPushMatrix()
-	#Within the post pole, now to make the board
-	glTranslate(4,1,0)
+	#This place is the right post
+	glColor(0,0,0)	
+	
+	glPushMatrix()		#Just the pole
+	glTranslate(4,-1.54,0)
+	glScale(0.1,3,0.1)
+	glutSolidCube(1)
+	glPopMatrix()		#Ending the pole
+
+	glPushMatrix()		#Within the post pole, now to make the board
+	glTranslate(4,0.4,0)
 	glScale(0.1,1,1)
 	glRotatef(180,0,1,0)
 	glutWireCube(1)
 
-	glPushMatrix()
-	#The hoop
+	glPushMatrix()	#Within the post pole, now to make the board
 	glTranslate(1.8,-0.44,0)
 	glScale(-5,0.5,0.5)
 	glRotatef(90,1,0,0)
@@ -329,45 +327,27 @@ def draw():
 	    glVertex2f(a,b)
 	    i = i + 1
 	glEnd()
-	#Ending the hoop
-	glPopMatrix()
+	glPopMatrix()		#Ending the hoop
 
 	#Ending the board
 	glPopMatrix()
 
 	#End of the right post
 	glPopMatrix()
-
-	glPushMatrix()
-	#For the hand
-	glTranslate(0,-3,0)
-	glScale(0.1,1,0.1)
-	glRotatef(270,1,0,0)
-	quadratic = gluNewQuadric()
-	gluCylinder(quadratic,0.5,0.5,height,32,32);
 	
-	glPushMatrix()
-	glColor(0,1,0)
-	#First segement of the hand
-	glTranslate(0,height,0)
-	#glScale(0.2,0.8,0.2)
-	glutSolidCube(0.2)
-	#Ending the first segement
-	glColor(0,0,0)
-	glTranslate(0,height,0)
-	glPushMatrix()
+	#Ending the court
+	glPopMatrix()
+
+	glPushMatrix()		#Basketball
 	glBindTexture(GL_TEXTURE_2D, int(textures[2]))
-	glScale(1,0.1,1)
-	insertBall(year, day, 0.0, 0.0, 1.0)
-	glPopMatrix()
-	glPopMatrix()
+	glTranslate(x,height-2.75+y,z)
+	glColor3f(0,0,0)
+	glScale(.5,.5,.5)
+	#insertBall(year, day, 0.0, 0.0, 1.0)
+	gluSphere(quadratic, 0.5, 32, 32)
+	glPopMatrix()		#End the ball
 
-	#Ending the hand
-	
-	
 
-	glPopMatrix()
-	glPopMatrix()
 	glFlush()
 
 
@@ -375,14 +355,14 @@ def draw():
 def main():
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB)
-    glutInitWindowSize(1000,500)
-    glutInitWindowPosition(100,100)
+    glutInitWindowSize(1920,1080)
+    glutInitWindowPosition(0,0)
     glutCreateWindow("Cube")
     init()
     glutDisplayFunc(draw)
     glutReshapeFunc(reshape)
     glutKeyboardFunc(keyboard)
-    #glutTimerFunc(interval, timer, 0)
+    glutTimerFunc(interval, timer, 0)
     glutMainLoop()
 
 velocity = input("Enter the inital velocity")
